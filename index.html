@@ -14,7 +14,7 @@
 
         body {
             font-family: 'Arial', sans-serif;
-            background-color: #f5f5f5;
+            background-color: #c2e3d5;/*最后面的背景图，被人物区和服装区盖住了，可以藏偷偷骂人图*/
         }
 
         .game-container {
@@ -31,9 +31,9 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            background-color: #fff;
-            border-radius: 10px;
-            margin-bottom: 10px;
+            background-color: #5ec28b;
+            border-radius: 10px;/*圆角*/
+            margin-bottom: 10px;/*没看出用处*/
             position: relative;
         }
 
@@ -41,7 +41,8 @@
             width: 300px;
             height: 500px;
             position: relative;
-            background-color: #eee;
+            background-color: #bab6ff;
+            
         }
 
         .base-character {
@@ -49,7 +50,7 @@
             height: 100%;
             background-image: url('images/base-character.png');
             background-size: contain;
-            background-repeat: no-repeat;
+            background-repeat: no-repeat;/*设置图片不重复平铺，背景图可以加加看？*/
             background-position: center;
         }
 
@@ -65,18 +66,22 @@
             pointer-events: none;
         }
 
-        .expression-gif {
+/* 替换现有的表情动画相关CSS */
+        .expression-animation {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            background-size: contain;
+            width: 300px;
+            height: 500px;
             background-repeat: no-repeat;
             background-position: center;
             opacity: 0;
             pointer-events: none;
-            background-image: none; /* 初始无背景 */
+            
+        }
+        @keyframes expressionAnimation {
+            0% { background-position: 0 0; }
+            100% { background-position: -1200px 0; } /* 移动300%而不是400% */
         }
 
 
@@ -84,7 +89,7 @@
                 /* 服装区域 */
         .clothing-area {
             flex: 1;
-            background-color: #fff;
+            background-color: #ede5f9;
             border-radius: 10px;
             padding: 10px;
         }
@@ -95,7 +100,7 @@
 
         .clothing-category h3 {
             margin-bottom: 8px;
-            color: #333;
+            color: #3e514f;
         }
 
         .clothing-items {
@@ -108,12 +113,12 @@
         .clothing-item {
             min-width: 80px;
             height: 80px;
-            background-color: #eee;
+            background-color: #e1ecea;
             border-radius: 5px;
             display: flex;
             justify-content: center;
             align-items: center;
-            cursor: pointer;
+            cursor: pointer;/*鼠标光标变手*/
             transition: transform 0.2s;
             background-size: contain;
             background-repeat: no-repeat;
@@ -160,11 +165,9 @@
             background: #555;
         }
 
-        /* 表情动画 */
-        @keyframes expressionAnimation {
-            0% { background-position: 0 0; }
-            100% { background-position: -400% 0; }
-        }
+
+
+
     </style>
 
 </head>
@@ -176,11 +179,11 @@
                 <!-- 基础人物 -->
                 <div class="base-character"></div>
                 <!-- 表情动画 -->
-                <div class="expression-gif" id="expression-animation"></div>
+                <div class="expression-animation" id="expression-animation"></div><!--改动了class=e-gif-->
                 <!-- 当前穿着的衣服 -->
                 <div class="current-bottom" id="current-bottom"></div>
                 <div class="current-top" id="current-top"></div>
-                <div class="current-accessory" id="current-accessory"></div>
+                <div class="current-accessory" id="current-accessory"></div>    <!--这里好像控制图层上下级-->
                 
             </div>
         </div>
@@ -210,7 +213,12 @@
         </div>
     </div>
     
+
+
     <script>
+
+    const preloadImage = new Image();
+
         document.addEventListener('DOMContentLoaded', function() {
             // 服装数据 - 这里需要替换成你自己的图片链接
             const clothingData = {
@@ -232,15 +240,6 @@
                 ]
             };
 
-
-
-
-            // 预加载GIF
-   const preloadGif = new Image();
-   preloadGif.src = 'images/cs.gif';
-
-
-            
                          // 初始化服装选项
                          function initClothingOptions() {
                 // 添加上衣选项
@@ -300,29 +299,36 @@
                 }
             }
 
-            // 播放表情动画
+            // 修改playExpressionAnimation函数
             function playExpressionAnimation() {
-    const anim = document.getElementById('expression-animation');
-    
-    // 完全重置
-    anim.style.opacity = '0';
-    anim.style.backgroundImage = 'none';
-    void anim.offsetWidth;
-    
-    // 使用时间戳强制GIF重新加载
-    const timestamp = new Date().getTime();
-    const gifUrl = `images/cs.gif?t=${timestamp}`;
-    
-    // 先设置opacity再加载图片
-    anim.style.opacity = '1';
-    anim.style.backgroundImage = `url(${gifUrl})`;
-    
-    // 根据GIF时长设置隐藏时间
-    setTimeout(() => {
-        anim.style.opacity = '0';
-    }, 1000); // 匹配GIF时长
-}
+                const animationElement = document.getElementById('expression-animation');
+                
+                // 重置动画
+                animationElement.style.opacity = '0';
+                void animationElement.offsetWidth; // 触发重绘
+                
+                // 设置精灵图动画 - 这里需要替换成你自己的表情动画图片
+                animationElement.style.backgroundImage = 'url(images/css-sprite.png)';
+                animationElement.style.opacity = '1';
+                
+                // 使用CSS动画播放精灵图
+                animationElement.style.animation = 'expressionAnimation 1.05s steps(4)';
+                
+                // 动画结束后重置
+                setTimeout(() => {
+                    animationElement.style.opacity = '0';
+                    animationElement.style.animation = 'none';
+                }, 1000);
+            }
 
+
+
+            // 初始化
+            initClothingOptions();
+        });
+    </script>
+</body>
+</html>
             // 初始化
             initClothingOptions();
         });
