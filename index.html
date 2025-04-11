@@ -75,7 +75,7 @@
             height: 500px;
             background-repeat: no-repeat;
             background-position: center;
-            opacity: 0;
+            opacity: 1;
             pointer-events: none;
             
         }
@@ -312,7 +312,7 @@
                 animationElement.style.opacity = '1';
                 
                 // 使用CSS动画播放精灵图
-                animationElement.style.animation = 'expressionAnimation 1.05s steps(4)';
+                animationElement.style.animation = 'expressionAnimation 1.05s steps(4,end)';
                 
                 // 动画结束后重置
                 setTimeout(() => {
@@ -323,12 +323,6 @@
 
 
 
-            // 初始化
-            initClothingOptions();
-        });
-    </script>
-</body>
-</html>
             // 初始化
             initClothingOptions();
         });
