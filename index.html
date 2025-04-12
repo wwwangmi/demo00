@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>换装游戏</title>
-    <link rel="preload" href="images/css-sprite.png" as="image">
+    <link rel="preload" href="images/css-sprite.png" as="image">  <!--这里预加载精灵图-->
     <style>
         /* 基础样式 */
         * {
@@ -32,7 +32,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            background-color: #5ec28b;
+            background-color: #f4f4f4;
             border-radius: 10px;/*圆角*/
             margin-bottom: 10px;/*没看出用处*/
             position: relative;
@@ -42,11 +42,14 @@
             width: 300px;
             height: 500px;
             position: relative;
-            background-color: #bab6ff;
+            background-color: #ffffff;
             
         }
 
         .base-character {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             background-image: url('images/base-character.png');
@@ -55,7 +58,33 @@
             background-position: center;
         }
 
-        .current-top, .current-bottom, .current-accessory {
+        /**/
+        .base-character-arm {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/base-character-arm.png');
+            background-size: contain;
+            background-repeat: no-repeat;/*设置图片不重复平铺，背景图可以加加看？*/
+            background-position: center;
+        }
+        .base-character-gouyu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/base-character-gouyu.png');
+            background-size: contain;
+            background-repeat: no-repeat;/*设置图片不重复平铺，背景图可以加加看？*/
+            background-position: center;
+        }
+        /**/
+
+
+        .current-top, .current-bottom, .current-accessory, .current-shoes{
             position: absolute;
             top: 0;
             left: 0;
@@ -66,6 +95,44 @@
             background-position: center;
             pointer-events: none;
         }
+
+        .current-xiuzi{
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            pointer-events: none;
+        }
+
+        /* 具体层叠顺序 
+.base-character-arm {
+  z-index: 1; /* 最底层 
+}
+.current-xiuzi {
+  z-index: 2; /* 袖子在人物之上，上衣之下 
+}
+.base-character {
+  z-index: 3; /* 上衣主体 
+}
+.base-character-gouyu {
+  z-index: 4; /* 饰品在最上层 
+}
+.current-shoes {
+  z-index: 6; /* 饰品在最上层 
+}
+.current-bottom {
+  z-index: 7; /* 饰品在最上层 
+}
+.accessory-top {
+  z-index: 8; /* 饰品在最上层 
+}
+.accessory-accessory {
+  z-index: 9; /* 饰品在最上层 
+}*/
 
 /* 替换现有的表情动画相关CSS */
         .expression-animation {
@@ -82,7 +149,7 @@
         }
         @keyframes expressionAnimation {
             0% { background-position: 0 0; }
-            100% { background-position: -1200px 0; } /* 移动300%而不是400% */
+            100% { background-position: -1200px 0; } /*用百分设置会出bug不知道为啥*/
         }
 
 
@@ -90,7 +157,7 @@
                 /* 服装区域 */
         .clothing-area {
             flex: 1;
-            background-color: #ede5f9;
+            background-color: #f4f4f4;
             border-radius: 10px;
             padding: 10px;
         }
@@ -177,14 +244,21 @@
         <!-- 人物展示区 -->
         <div class="character-area">
             <div class="character" id="character">
+                <!-- 手臂 -->
+                <div class="base-character-arm"></div>
+                <!-- 当前穿着的衣服袖子 -->
+                <div class="current-xiuzi" id="current-xiuzi"></div>
                 <!-- 基础人物 -->
                 <div class="base-character"></div>
-                <!-- 表情动画 -->
+                <!-- 点击动画 -->
                 <div class="expression-animation" id="expression-animation"></div><!--改动了class=e-gif-->
+                <!-- 勾玉 -->
+                <div class="base-character-gouyu"></div>
                 <!-- 当前穿着的衣服 -->
+                <div class="current-shoes" id="current-shoes"></div>
                 <div class="current-bottom" id="current-bottom"></div>
                 <div class="current-top" id="current-top"></div>
-                <div class="current-accessory" id="current-accessory"></div>    <!--这里好像控制图层上下级-->
+                <div class="current-accessory" id="current-accessory"></div>    <!--这里控制图层上下级-->
                 
             </div>
         </div>
@@ -206,9 +280,16 @@
             </div>
             
             <div class="clothing-category">
-                <h3>饰品</h3>
+                <h3>配饰</h3>
                 <div class="clothing-items" id="accessories">
-                    <!-- 饰品选项将通过JS动态添加 -->
+                    <!-- 配饰选项将通过JS动态添加 -->
+                </div>
+            </div>
+
+            <div class="clothing-category">
+                <h3>鞋子</h3>
+                <div class="clothing-items" id="shoes">
+                    <!-- 鞋子选项将通过JS动态添加 -->
                 </div>
             </div>
         </div>
@@ -224,34 +305,52 @@
             // 服装数据 - 这里需要替换成你自己的图片链接
             const clothingData = {
                 tops: [
-                    { id: 'top1', name: 'T恤', image: 'images/shirt1.png', special: false },
-                    { id: 'top2', name: '衬衫', image: 'images/shirt2.png', special: false },
-                    { id: 'top3', name: '毛衣', image: 'images/shirt4.png', special: true }, // 这件衣服会触发表情动画
-                    { id: 'top4', name: '外套', image: 'images/shirt3.png', special: false },
+                    { id: 'top1', name: '原装', image: 'images/s1.png', sleeveImage: 'images/s1-s.png', previewImage: 'images/s1-f.png', special: false },
+                    { id: 'top2', name: '队服', image: 'images/s2.png', sleeveImage: 'images/s2-s.png', previewImage: 'images/s2-f.png', special: false },
+                    { id: 'top3', name: '水手服', image: 'images/s3.png', sleeveImage: 'images/s3-s.png', previewImage: 'images/s3-f.png', special: true }, // 这件衣服会触发表情动画
+                    { id: 'top4', name: '家居服', image: 'images/s4.png', sleeveImage: 'images/s4-s.png', previewImage: 'images/s4-f.png', special: false },
+                    { id: 'top5', name: '西式衬衫', image: 'images/s5.png', sleeveImage: 'images/s5-s.png', previewImage: 'images/s5-f.png', special: false },
+                    { id: 'top6', name: '毛衣衬衫', image: 'images/s6.png', sleeveImage: 'images/s6-s.png', previewImage: 'images/s6-f.png', special: false },
+                    { id: 'top7', name: '卫衣', image: 'images/s7.png', sleeveImage: 'images/s7.png', previewImage: 'images/s7.png', special: false },
+                    
                 ],
                 bottoms: [
-                    { id: 'bottom1', name: '牛仔裤', image: 'images/pants1.png', special: false },
-                    { id: 'bottom2', name: '短裙', image: 'images/pants2.png', special: false },
-                    { id: 'bottom3', name: '运动裤', image: 'images/pants3.png', special: false },
+                    { id: 'bottom1', name: '原装', image: 'images/p1.png', special: false },
+                    { id: 'bottom2', name: '队服', image: 'images/p2.png', special: false },
+                    { id: 'bottom3', name: '水手服', image: 'images/p3.png', special: false },
+                    { id: 'bottom4', name: '家居服', image: 'images/p4.png', special: false },
+                    { id: 'bottom5', name: '休闲西裤', image: 'images/p5.png', special: false },
+                    { id: 'bottom6', name: '卡其色长裤', image: 'images/p6.png', special: false },
+                    { id: 'bottom7', name: '工装短裤', image: 'images/p7.png', special: false },
                 ],
                 accessories: [
                     { id: 'acc1', name: '帽子', image: 'images/c1.png', special: false },
-                    { id: 'acc2', name: '眼镜', image: 'images/c2.png', special: true }, // 这个饰品会触发表情动画
-                    { id: 'acc3', name: '围巾', image: 'images/c3.png', special: false },
-                ]
+                    { id: 'acc2', name: '手环', image: 'images/c2.png', special: true }, // 这个饰品会触发表情动画
+                    { id: 'acc3', name: '手袖', image: 'images/c3.png', special: false },
+                ],
+                shoes: [
+                    { id: 'sh1', name: '原装', image: 'images/sh1.png', special: false },
+                    { id: 'sh2', name: '队服', image: 'images/sh2.png', special: true }, // 这个饰品会触发表情动画
+                    { id: 'sh3', name: '棕皮鞋', image: 'images/sh3.png', special: false },
+                    { id: 'sh4', name: '拖鞋', image: 'images/sh4.png', special: false },
+                    { id: 'sh5', name: '黑皮鞋', image: 'images/sh5.png', special: false },
+                    { id: 'sh6', name: '跑鞋', image: 'images/sh6.png', special: false },
+                    { id: 'sh7', name: '凉鞋', image: 'images/sh7.png', special: false },
+                ],
+
             };
 
-                         // 初始化服装选项
-                         function initClothingOptions() {
+                // 初始化服装选项
+                function initClothingOptions() {
                 // 添加上衣选项
-                const topsContainer = document.getElementById('tops');
-                clothingData.tops.forEach(top => {
+                    const topsContainer = document.getElementById('tops');
+                    clothingData.tops.forEach(top => {
                     const item = document.createElement('div');
                     item.className = 'clothing-item';
                     item.dataset.id = top.id;
                     item.dataset.type = 'top';
                     item.dataset.special = top.special;
-                    item.style.backgroundImage = `url(${top.image})`;
+                    item.style.backgroundImage = top.previewImage ? `url(${top.previewImage})` : `url(${top.image})`;
                     item.title = top.name;
                     item.addEventListener('click', () => selectClothing('top', top));
                     topsContainer.appendChild(item);
@@ -284,21 +383,41 @@
                     item.addEventListener('click', () => selectClothing('accessory', accessory));
                     accessoriesContainer.appendChild(item);
                 });
+
+                // 添加鞋子选项
+                const shoesContainer = document.getElementById('shoes');
+                clothingData.shoes.forEach(shoes => {
+                    const item = document.createElement('div');
+                    item.className = 'clothing-item';
+                    item.dataset.id = shoes.id;
+                    item.dataset.type = 'shoes';
+                    item.dataset.special = shoes.special;
+                    item.style.backgroundImage = `url(${shoes.image})`;
+                    item.title = shoes.name;
+                    item.addEventListener('click', () => selectClothing('shoes', shoes));
+                    shoesContainer.appendChild(item);
+                });
             }
 
             // 选择服装
             function selectClothing(type, item) {
-                const elementId = `current-${type}`;
-                const element = document.getElementById(elementId);
-                
-                // 更新人物穿着
-                element.style.backgroundImage = `url(${item.image})`;
-                
-                // 如果是特殊服装，播放表情动画
-                if (item.special) {
-                    playExpressionAnimation();
-                }
-            }
+  const elementId = `current-${type}`;
+  const element = document.getElementById(elementId);
+  
+  // 更新人物穿着
+  element.style.backgroundImage = `url(${item.image})`;
+  
+  // 如果是上衣，同时更新袖子
+  if (type === 'top' && item.sleeveImage) {
+    const sleeveElement = document.getElementById('current-xiuzi');
+    sleeveElement.style.backgroundImage = `url(${item.sleeveImage})`;
+  }
+  
+  // 如果是特殊服装，播放表情动画
+  if (item.special) {
+    playExpressionAnimation();
+  }
+}
 
             // 修改playExpressionAnimation函数
             function playExpressionAnimation() {
