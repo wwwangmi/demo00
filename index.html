@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>换装游戏</title>
-    <link rel="preload" href="images/css-sprite.png" as="image">  <!--这里预加载精灵图-->
+    <link rel="preload" href="images/sprites-click2.png" as="image">  <!--这里预加载精灵图-->
     <style>
         /* 基础样式 */
         * {
@@ -108,31 +108,21 @@
             pointer-events: none;
         }
 
-        /* 具体层叠顺序 
-.base-character-arm {
-  z-index: 1; /* 最底层 
+        .click-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  pointer-events: auto; /* 允许交互 */
 }
-.current-xiuzi {
-  z-index: 2; /* 袖子在人物之上，上衣之下 
-}
-.base-character {
-  z-index: 3; /* 上衣主体 
-}
-.base-character-gouyu {
-  z-index: 4; /* 饰品在最上层 
-}
-.current-shoes {
-  z-index: 6; /* 饰品在最上层 
-}
-.current-bottom {
-  z-index: 7; /* 饰品在最上层 
-}
-.accessory-top {
-  z-index: 8; /* 饰品在最上层 
-}
-.accessory-accessory {
-  z-index: 9; /* 饰品在最上层 
-}*/
+
+@keyframes clickionAnimation {
+            0% { background-position: 0 0; }
+            100% { background-position: -6000px 0; } /*用百分设置会出bug不知道为啥*/
+        }
+
 
 /* 替换现有的表情动画相关CSS */
         .expression-animation {
@@ -147,9 +137,9 @@
             pointer-events: none;
             
         }
-        @keyframes expressionAnimation {
+        @keyframes clickAnimation {
             0% { background-position: 0 0; }
-            100% { background-position: -1200px 0; } /*用百分设置会出bug不知道为啥*/
+            100% { background-position: -6000px 0; } /*用百分设置会出bug不知道为啥*/
         }
 
 
@@ -259,7 +249,7 @@
                 <div class="current-bottom" id="current-bottom"></div>
                 <div class="current-top" id="current-top"></div>
                 <div class="current-accessory" id="current-accessory"></div>    <!--这里控制图层上下级-->
-                
+                <div class="click-layer" id="click-layer"></div>
             </div>
         </div>
         
@@ -300,8 +290,15 @@
     <script>
 
     const preloadImage = new Image();
+        
 
         document.addEventListener('DOMContentLoaded', function() {
+
+            document.getElementById('click-layer').addEventListener('click', function() {
+                playClickAnimation();
+            });
+
+            
             // 服装数据 - 这里需要替换成你自己的图片链接
             const clothingData = {
                 tops: [
@@ -401,44 +398,44 @@
 
             // 选择服装
             function selectClothing(type, item) {
-  const elementId = `current-${type}`;
-  const element = document.getElementById(elementId);
+                const elementId = `current-${type}`;
+                const element = document.getElementById(elementId);
   
-  // 更新人物穿着
-  element.style.backgroundImage = `url(${item.image})`;
+                // 更新人物穿着
+                element.style.backgroundImage = `url(${item.image})`;
   
-  // 如果是上衣，同时更新袖子
-  if (type === 'top' && item.sleeveImage) {
-    const sleeveElement = document.getElementById('current-xiuzi');
-    sleeveElement.style.backgroundImage = `url(${item.sleeveImage})`;
-  }
+                // 如果是上衣，同时更新袖子
+                if (type === 'top' && item.sleeveImage) {
+                    const sleeveElement = document.getElementById('current-xiuzi');
+                    sleeveElement.style.backgroundImage = `url(${item.sleeveImage})`;
+                }
   
-  // 如果是特殊服装，播放表情动画
-  if (item.special) {
-    playExpressionAnimation();
-  }
-}
+
+            }
+
+
+
+
 
             // 修改playExpressionAnimation函数
-            function playExpressionAnimation() {
+            function playClickAnimation() {
                 const animationElement = document.getElementById('expression-animation');
                 
-                // 重置动画
-                animationElement.style.opacity = '0';
-                void animationElement.offsetWidth; // 触发重绘
-                
-                // 设置精灵图动画 - 这里需要替换成你自己的表情动画图片
-                animationElement.style.backgroundImage = 'url(images/css-sprite.png)';
+                 // 设置点击动画精灵图（需准备新素材）
+                animationElement.style.backgroundImage = 'url(images/sprites-click2.png)';
+  
+                // 重置动画状态
                 animationElement.style.opacity = '1';
-                
-                // 使用CSS动画播放精灵图
-                animationElement.style.animation = 'expressionAnimation 1.05s steps(4,end)';
-                
-                // 动画结束后重置
+                animationElement.style.animation = 'none';
+                void animationElement.offsetWidth;
+
+                // 设置新动画参数
+                animationElement.style.animation = 'clickAnimation 2.5s steps(20) forwards';
+
+                // 自动重置
                 setTimeout(() => {
                     animationElement.style.opacity = '0';
-                    animationElement.style.animation = 'none';
-                }, 1000);
+                }, 2000);
             }
 
 
